@@ -26,24 +26,6 @@ app.use(
       proxyReq.removeHeader("origin");
       proxyReq.removeHeader("referer");
     },
-    onProxyRes(proxyRes, req, res) {
-      // Rewrite any Unith URLs in the response to use our proxy
-      const contentType = proxyRes.headers['content-type'] || '';
-      
-      if (contentType.includes('text/html') || contentType.includes('application/javascript') || contentType.includes('text/javascript')) {
-        let body = '';
-        proxyRes.on('data', chunk => {
-          body += chunk.toString();
-        });
-        proxyRes.on('end', () => {
-          // Replace all Unith domain references with our proxy endpoints
-          body = body.replace(/https:\/\/stream\.unith\.ai/g, '/avatar');
-          body = body.replace(/https:\/\/embedded-stream\.unith\.ai/g, '/embedded');
-          body = body.replace(/https:\/\/gpt-head-assets\.unith\.ai/g, '/assets');
-          res.send(body);
-        });
-      }
-    },
     onError(err, req, res) {
       console.error("Proxy error:", err);
       res.status(500).send("Proxy failed.");
@@ -100,10 +82,15 @@ app.get("/health", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Proxy server running on port ${PORT}`);
   console.log(`Proxying:`);
   console.log(`  /avatar -> stream.unith.ai`);
   console.log(`  /embedded -> embedded-stream.unith.ai`);
   console.log(`  /assets -> gpt-head-assets.unith.ai`);
+});
+
+// Handle WebSocket upgrades
+server.on('upgrade', (req, socket, head) => {
+  console.log('WebSocket upgrade request:', req.url);
 });
