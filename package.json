@@ -1,7 +1,7 @@
 {
-  "name": "unith-proxy",
+  "name": "tabuk-unith-proxy",
   "version": "1.0.0",
-  "description": "Proxy to hide Unith domain",
+  "description": "Proxy server to hide Unith domain for Tabuk Emirates website",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -9,6 +9,9 @@
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "node-fetch": "^2.6.7"
+    "http-proxy-middleware": "^2.0.6"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
