@@ -1,24 +1,30 @@
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
-
 app.use(cors());
 
-// STREAMING + WEBSOCKET PROXY FOR UNITH
+// Serve your HTML file from the root directory
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Proxy for Unith streaming avatar
 app.use(
   "/avatar",
   createProxyMiddleware({
     target: "https://stream.unith.ai",
     changeOrigin: true,
-    ws: true, // enable websocket
+    ws: true, // Enable WebSocket support
     secure: true,
     pathRewrite: {
-      "^/avatar": "",
+      "^/avatar": "", // Remove /avatar prefix when forwarding
     },
     onProxyReq(proxyReq, req, res) {
-      proxyReq.removeHeader("origin"); // prevent CORS issues
+      proxyReq.removeHeader("origin");
+      proxyReq.removeHeader("referer");
     },
     onError(err, req, res) {
       console.error("Proxy error:", err);
@@ -27,10 +33,12 @@ app.use(
   })
 );
 
-// Health check
-app.get("/health", (req, res) => res.send("OK"));
+// Health check endpoint for Render
+app.get("/health", (req, res) => {
+  res.send("OK");
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("FULL STREAMING PROXY RUNNING on port " + PORT);
+  console.log(`Proxy server running on port ${PORT}`);
 });
